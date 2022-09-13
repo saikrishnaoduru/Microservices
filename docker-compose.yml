@@ -1,0 +1,65 @@
+version: '3'
+services:
+
+  h2:
+    image: h2:latest
+    container_name: h2
+    network_mode: "host"
+    hostname: localhost
+    ports:
+      - 9192:9192
+
+  cloud-config-service:
+    image: cloud-config-server
+    build: cloud-config-server/
+    container_name: cloud-config-server
+    network_mode: "host"
+    hostname: localhost
+    restart: always
+    ports:
+      - 9196:9196
+  service-registry:
+    image: service-registry
+    build: service-registry/
+    container_name: service-registry
+    network_mode: "host"
+    hostname: localhost
+    restart: always
+    ports:
+      - 8761:8761
+    depends_on:
+      - cloud-config-server
+  cloud-gateway:
+    image: cloud-gateway
+    build: cloud-gateway/
+    container_name: cloud-gateway
+    network_mode: "host"
+    hostname: localhost
+    ports:
+      - 8989:8989
+    depends_on:
+      - service-registry
+  order-service:
+    image: order-service
+    container_name: order-service
+    build: order-service/
+    hostname: localhost
+    network_mode: "host"
+    ports:
+      - 9192:9192
+    depends_on:
+      - h2
+      - cloud-config-server
+      - service-registry
+  payment-service:
+    image: payment-service
+    container_name: payment-service
+    build: payment-service/
+    hostname: localhost
+    network_mode: "host"
+    ports:
+      - 9191:9191
+    depends_on:
+      - h2
+      - cloud-config-server
+      - service-registry
